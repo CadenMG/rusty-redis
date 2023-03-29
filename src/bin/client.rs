@@ -14,7 +14,10 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     let mut stream = TcpStream::connect("127.0.0.1:1234").await?;
     println!("created stream");
 
-    let result1 = stream.write(b"hello world\n").await;
+    let msg = "hello world\n".to_string();
+    let len = msg.len() as u32;
+
+    let result1 = stream.write(&[&len.to_be_bytes(), msg.as_bytes()].concat()).await;
     println!("wrote to stream; success={:?}", result1.is_ok());
 
     Ok(())

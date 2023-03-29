@@ -5,6 +5,8 @@ use std::env;
 use std::str;
 use std::error::Error;
 
+use redis::cmd::Message;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // Allow passing an address to listen on as the first argument of this
@@ -45,12 +47,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 if n == 0 {
                     return;
                 }
+                
+                let parsed = Message::parse_bytes(&buf, n);
 
-                println!("client says: {}", str::from_utf8(&buf[0..n]).unwrap());
-                socket
-                    .write_all(&buf[0..n])
-                    .await
-                    .expect("failed to write data to socket");
+                match parsed {
+                    Ok(msg) => println!("client says: {}", msg),
+                    Err(e) => println!("unknown message recieved: {}", e)
+                };
             }
         });
     }
