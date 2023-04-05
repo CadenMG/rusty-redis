@@ -1,6 +1,15 @@
 use std::fmt;
 use std::str;
 
+mod get;
+use get::Get;
+
+mod set;
+use set::Set;
+
+mod del;
+use del::Del;
+
 type Result<T> = std::result::Result<T, ParseError>;
 
 #[derive(Debug, Clone)]
@@ -51,4 +60,7 @@ impl fmt::Display for Message {
 #[derive(Debug, Clone)]
 pub enum Command {
     Message(Message),
+    Get(Get),
+    Set(Set),
+    Del(Del),
 }
