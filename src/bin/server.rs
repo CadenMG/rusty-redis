@@ -1,10 +1,13 @@
-use tokio::io::{AsyncReadExt,};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
 use std::env;
 use std::error::Error;
 
+use bytes::Bytes;
+
 use redis::cmd::Command;
+use redis::db::DB;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -21,9 +24,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let listener = TcpListener::bind(&addr).await?;
     println!("Listening on: {}", addr);
 
+    let db = DB::new();
+
     loop {
         // Asynchronously wait for an inbound socket.
         let (mut socket, _) = listener.accept().await?;
+        // Grab handle to the shared DB
+        let handle = db.clone();
 
         // And this is where much of the magic of this server happens. We
         // crucially want all clients to make progress concurrently, rather than
@@ -47,8 +54,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     return;
                 }
                 
-                match Command::parse_bytes(&buf, n) {
-                    Ok(msg) => println!("client says: {}", msg),
+                // todo: create response protocol
+                let maybe_cmd = Command::parse_bytes(&buf, n);
+                match maybe_cmd {
+                    Ok(cmd) => {
+                        let res = cmd.apply(&handle);
+                        println!("writing: {:?}", res);
+                        socket
+                            .write_all(&res.unwrap_or(Bytes::from(vec![1])))
+                            .await
+                            .expect("failed to write to client");
+                    },
                     Err(e) => println!("unknown message recieved: {}", e)
                 };
             }

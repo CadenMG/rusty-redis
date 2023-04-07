@@ -1,4 +1,7 @@
 use std::fmt;
+use bytes::Bytes;
+
+use crate::db::DB;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Get {
@@ -10,6 +13,10 @@ impl Get {
         Get {
             key: key.to_string(),
         }
+    }
+
+    pub fn apply(&self, db: &DB) -> Option<Bytes> {
+        db.get(&self.key)
     }
 }
 

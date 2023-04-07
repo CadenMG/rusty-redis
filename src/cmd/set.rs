@@ -1,6 +1,8 @@
 use bytes::Bytes;
 use std::fmt;
 
+use crate::db::DB;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Set {
     key: String,
@@ -13,6 +15,10 @@ impl Set {
             key: key.to_string(),
             value,
         }
+    }
+
+    pub fn apply(&self, db: &DB) -> Option<Bytes> {
+        db.set(self.key.clone(), self.value.clone())
     }
 }
 

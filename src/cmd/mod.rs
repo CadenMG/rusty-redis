@@ -8,6 +8,8 @@ use set::Set;
 mod del;
 use del::Del;
 
+use crate::db::DB;
+
 #[derive(Debug, Clone)]
 pub struct ParseError;
 
@@ -87,6 +89,14 @@ impl Command {
                 parse_command_two_arg(&cmd_name.to_lowercase(), data1, data2)
             }
             _ => Err(ParseError)
+        }
+    }
+
+    pub fn apply(&self, db: &DB) -> Option<Bytes> {
+        match self {
+            Command::Get(get) => get.apply(db),
+            Command::Set(set) => set.apply(db),
+            Command::Del(del) => del.apply(db),
         }
     }
 }
