@@ -1,11 +1,10 @@
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncReadExt,};
 use tokio::net::TcpListener;
 
 use std::env;
-use std::str;
 use std::error::Error;
 
-use redis::cmd::Message;
+use redis::cmd::Command;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -48,9 +47,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     return;
                 }
                 
-                let parsed = Message::parse_bytes(&buf, n);
-
-                match parsed {
+                match Command::parse_bytes(&buf, n) {
                     Ok(msg) => println!("client says: {}", msg),
                     Err(e) => println!("unknown message recieved: {}", e)
                 };
