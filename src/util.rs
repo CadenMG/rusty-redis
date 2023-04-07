@@ -1,4 +1,9 @@
 use std::mem::transmute;
+use bytes::Bytes;
+
+pub const SUCCESS_AND_DATA: u8 = 1;
+pub const SUCCESS_AND_NO_DATA: u8 = 2;
+pub const FAILED: u8 = 3;
 
 pub fn set_request(key: &str, val: &[u8]) -> Vec<u8> {
     let mut set = vec![0, 0, 0, 3, 0, 0, 0, 3, 115, 101, 116];
@@ -33,6 +38,45 @@ pub fn del_request(key: &str) -> Vec<u8> {
 #[inline]
 fn as_bytes(n: u32) -> [u8; 4] {
     unsafe { transmute(n.to_be()) }
+}
+
+#[inline]
+pub fn parse_num(b1: u8, b2: u8, b3: u8, b4: u8) -> usize {
+    ((b1 as usize) << 24) |
+    ((b2 as usize) << 16) |
+    ((b3 as usize) << 8) |
+    ((b4 as usize) << 0)
+}
+
+#[inline]
+pub fn parse_string(bytes: &[u8]) -> String {
+    std::str::from_utf8(bytes).unwrap().to_string()
+}
+
+pub fn to_response(status: u8, bytes: Option<Bytes>) -> Vec<u8> {
+    // Responses start with a 32 bit status
+    let mut res = vec![0, 0, 0, status];
+
+    // Success and data is Some
+    if status == SUCCESS_AND_DATA {
+        res.extend(bytes.unwrap());
+    } else if status == FAILED {
+        res.extend(bytes.unwrap())
+    }
+    res
+}
+
+pub fn from_response(res: &Vec<u8>) -> String {
+    let status = parse_num(res[0], res[1], res[2], res[3]) as u8;
+    if status == SUCCESS_AND_DATA {
+        format!("{:?}", res.get(4..).unwrap())
+    } else if status == SUCCESS_AND_NO_DATA {
+        "Success".to_string()
+    } else if status == FAILED {
+        format!("Failed with message: {}", parse_string(&res[4..]))
+    } else {
+        "Unknown response".to_string()
+    }
 }
 
 #[cfg(test)]

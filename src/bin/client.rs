@@ -10,6 +10,7 @@ use std::error::Error;
 use redis::util::get_request;
 use redis::util::del_request;
 use redis::util::set_request;
+use redis::util::from_response;
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn Error>> {
@@ -28,7 +29,7 @@ pub async fn main() -> Result<(), Box<dyn Error>> {
     if n == 0 {
         return Ok(());
     }
-    println!("response: {:?}", &buf[0..n]);
+    println!("response: {}", from_response(&buf[0..n].to_vec()));
 
     Ok(())
 }

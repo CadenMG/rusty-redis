@@ -14,7 +14,6 @@ struct State {
 
 #[derive(Debug)]
 struct Entry {
-    id: u64,
     data: Bytes, 
 }
 
@@ -39,7 +38,6 @@ impl DB {
         state.entries.insert(
             key,
             Entry {
-                id: 0,
                 data: val,
             },
         ).map(|entry| entry.data.clone())

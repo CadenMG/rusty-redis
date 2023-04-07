@@ -9,6 +9,8 @@ mod del;
 use del::Del;
 
 use crate::db::DB;
+use crate::util::parse_string;
+use crate::util::parse_num;
 
 #[derive(Debug, Clone)]
 pub struct ParseError;
@@ -110,19 +112,6 @@ impl fmt::Display for Command {
         };
         write!(f, "{}", msg)
     }
-}
-
-#[inline]
-fn parse_num(b1: u8, b2: u8, b3: u8, b4: u8) -> usize {
-    ((b1 as usize) << 24) |
-    ((b2 as usize) << 16) |
-    ((b3 as usize) << 8) |
-    ((b4 as usize) << 0)
-}
-
-#[inline]
-fn parse_string(bytes: &[u8]) -> String {
-    std::str::from_utf8(bytes).unwrap().to_string()
 }
 
 fn parse_command_two_arg(name: &str, data1: &[u8], data2: &[u8]) -> Result<Command> {

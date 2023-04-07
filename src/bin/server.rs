@@ -3,11 +3,11 @@ use tokio::net::TcpListener;
 
 use std::env;
 use std::error::Error;
-
 use bytes::Bytes;
 
 use redis::cmd::Command;
 use redis::db::DB;
+use redis::util::{to_response, SUCCESS_AND_DATA, SUCCESS_AND_NO_DATA, FAILED};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -53,19 +53,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 if n == 0 {
                     return;
                 }
-                
-                // todo: create response protocol
+
                 let maybe_cmd = Command::parse_bytes(&buf, n);
                 match maybe_cmd {
                     Ok(cmd) => {
                         let res = cmd.apply(&handle);
+                        let status = if res.is_some() { 
+                            SUCCESS_AND_DATA
+                        } else { 
+                            SUCCESS_AND_NO_DATA
+                        };
                         println!("writing: {:?}", res);
                         socket
-                            .write_all(&res.unwrap_or(Bytes::from(vec![1])))
+                            .write_all(&to_response(status, res))
                             .await
                             .expect("failed to write to client");
                     },
-                    Err(e) => println!("unknown message recieved: {}", e)
+                    Err(e) => {
+                        let res = format!("unknown message recieved: {}", e);
+                        println!("{}", res);
+                        let bytes = Some(Bytes::from(res));
+                        socket
+                            .write_all(&to_response(FAILED, bytes))
+                            .await
+                            .expect("failed to write to client");
+                    }
                 };
             }
         });
