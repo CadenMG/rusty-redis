@@ -20,22 +20,22 @@ Where `cmd` is one of:
 Gets the value for the given key or returns nothing if the key DNE
 
 Ex usage:
-`get key` -> `val`
-`get key` -> `()`
+- `get key -> val`
+- `get key -> ()`
 
 ## Set
 Sets the value to the given key and returns the previous value for the key, if any
 
 Ex usage:
-`set key val` -> `()`
-`set key val` -> `old val`
+- `set key val -> ()`
+- `set key val -> old val`
 
 ## Del
 Delets and returns the value for the given key, or returns nothing if the key DNE
 
 Ex usage:
-`del key` -> `val`
-`del key` -> `()`
+- `del key -> val`
+- `del key -> ()`
 
 # Command / Response Protocol
 ## Command
